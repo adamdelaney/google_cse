@@ -1,0 +1,6 @@
+name = Google Custom Search Engine
+description = Adds a Google Custom Search engine to the page
+package = CSE
+core = 7.x
+version = 7.x-1.0
+configure = admin/config/user-interface/google-cse

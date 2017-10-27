@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ *
+ * Install and uninstall tasks for UIowa Bar.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function google_cse_install() {
+  // Set the default custom search engine id.
+  variable_set('google_cse_engine_id', '');
+  // Set the default custom search scoping to this site.
+  variable_set('google_cse_scope', 1);
+  // Set the default custom search expose block setting.
+  variable_set('google_cse_expose_block', 0);
+  // Set the default custom search region top setting.
+  variable_set('google_cse_render_top', 0);
+
+  // Set permissions for the search.
+  $roles = user_roles();
+  foreach ($roles as $rid => $role) {
+    user_role_grant_permissions($rid, array('access google cse results'));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function google_cse_uninstall() {
+  // Delete the custom search engine id variable.
+  variable_del('google_cse_engine_id');
+  // Delete the custom search scoping variable.
+  variable_del('google_cse_scope');
+  // Delete the custom search expose block variable.
+  variable_del('google_cse_expose_block');
+  // Delete the custom search region topvariable.
+  variable_del('google_cse_render_top');
+}

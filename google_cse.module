@@ -1,0 +1,122 @@
+<?php
+
+/**
+ * @file
+ *
+ * Implements the Google Custom Search form.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function google_cse_permission() {
+  return array(
+    'administer google cse' => array(
+      'title' => t('Administer Google Custom Search Engine'),
+      'description' => t('Perform administration tasks for the Google Custom Search Engine.'),
+    ),
+    'access google cse results' => array(
+      'title' => t('Access Google Custom Search Results'),
+      'description' => t('View search results for the Google Custom Search.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function google_cse_menu() {
+  $items = array();
+
+  $items['google-search'] = array(
+    'title' => variable_get('site_name') . ' Search',
+    'page callback' => 'google_cse_view',
+    'access arguments' => array('access google cse results'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/user-interface/google-cse'] = array(
+    'title' => 'Google Custom Search Engine',
+    'description' => 'Configuration for the Google Custom Search Engine',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('google_cse_config_form'),
+    'access arguments' => array('administer google cse'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/google_cse.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function google_cse_theme() {
+  return array(
+    'google_cse_cse_results' => array(
+      'template' => 'google-cse-results',
+      'path' => drupal_get_path('module', 'google_cse') . '/theme',
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function google_cse_page_build(&$page) {
+  global $theme_key;
+
+  // If the theme being used is the default theme, build the bar.
+  // This avoids us building the bar on pages using the admin theme.
+  // And if the admin config is set to print in region-top.
+  if (variable_get('theme_default', 'none') === $theme_key && variable_get('google_cse_render_top') === 1) {
+
+    // Build the Google CSE bar.
+    module_load_include('inc', 'google_cse', 'includes/google_cse.build');
+    // Get the top bar render array.
+    $google_cse_top_render_array = build_google_cse();
+    $page['page_top']['google_cse'] = array(
+      '#markup' => render($google_cse_top_render_array),
+      '#weight' => 25,
+    );
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function google_cse_block_info() {
+  if (variable_get('google_cse_expose_block') === 1) {
+    $blocks['google_cse'] = array(
+      'info' => t('Google Custom Search Engine'),
+    );
+
+    return $blocks;
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function google_cse_block_view($delta = '') {
+  if (variable_get('google_cse_expose_block') === 1) {
+    $block = array();
+    module_load_include('inc', 'google_cse', 'includes/google_cse.build');
+
+    switch ($delta) {
+      case 'google_cse':
+        $block['subject'] = t('Search Block');
+        $block['content'] = drupal_get_form('google_cse_search_form');
+        break;
+
+    }
+    return $block;
+  }
+}
+
+/**
+ * Implements hook_view().
+ */
+function google_cse_view() {
+  return theme('google_cse_cse_results');
+}
